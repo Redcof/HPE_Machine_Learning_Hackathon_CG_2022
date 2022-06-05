@@ -6,8 +6,8 @@
         0 : Suspicious
         1 : Legitimate
 - We have a `Result` column in the dataset which indicates:
-        -1 : Phishing (56%)
-        1 : Legitimate (44%)
+        -1 : Phishing
+        1 : Legitimate
 - Good balance between classes
 - Our task is to identify whether a certain website is Legitimate(1) or Phishing(-1) based on given 30 features.
 
@@ -21,21 +21,16 @@
 # Data Exploration
 - On performing Exploratory Data Analysis(EDA), we found few features are highly correlated with the target variable.
 - Distribution between the classes are as follows:
-        -1 : Phishing (56%)
-        1 : Legitimate (44%)
+        -1 : Phishing (51%)
+        1 : Legitimate (49%)
 - There are 9 features is highly correlated with `Result` variable
         - Prefix_Suffix
-        - having_Sub_Domain
         - SSLfinal_State
-        - Domain_registeration_length
-        - Request_URL
         - URL_of_Anchor
-        - Links_in_tags
-        - SFH
-        - web_traffic
 
 # Feature Engineering
-- We have kept all the features
+- We have kept all the features except `key` variable
+- We dropped duplicate entries form train dataset
 - Encoded `Result` variable 1 and 0 where:
         - 1 is Phishing
         - 0 is Legitimate
@@ -55,9 +50,9 @@
 - Our idea is to keep the False Negative Rate(FNR) as low as possible.
 - We took ROC_AUC as our evaluation metric.
 
-# Model Building:
+# Approach:
 - As the number of features is not too high, we started with simple logistic regression model
-- We used 11 fold cross-validation. As we have almost 9000 data,  each fold is having 800 samples for validation
+- We used 5 fold cross-validation. As we have almost ~5000 data,  each fold is having 1000 samples for validation
 - Later we have chosen Decision Tree model for better and reliable result.
 - We performed Hyperparameter tuning and Fine Tuning to find our best decision tree.
 - We have saved our best decision tree model as dt6.joblib file and feature encoder object as enc.joblib file.
@@ -68,48 +63,3 @@
     0.053972    Prefix_Suffix
     0.042104    web_traffic
     0.035136    Links_in_tags
-
-# Analytical Findings
-Optimal Probability cutoff:  [0.455]
-Accuracy at optimal cutoff:  [0.923]
-Sensitivity at optimal cutoff:  [0.925]
-Specificity at optimal cutoff:  [0.922]
-FNR at optimal cutoff:  [0.075]
-FPR at optimal cutoff:  [0.078]
-
-# Analytical Decisions
-- As we want to correctly predict the phising site, we should keep the FNR to as low as possible.
-- While considering the Accuracy in mind we choose to have a cutoff=0.25
-Our Probability cutoff:  [0.25]
-Accuracy at our cutoff:  [0.895]
-Sensitivity at our cutoff:  [0.966]
-Specificity at our cutoff:  [0.84]
-FNR at our cutoff:  [0.034]
-FPR at our cutoff:  [0.16]
-
-
-# Submission File
-- We have choosen 0.25 as our probability cutoff to generate the submission file.
-
-# Prediction function
-- Below python function can help us predict the results
-- We can choose out probability cutoff based upon our requirements
-
-------------------------------------------------
-root = "."
-def predict(features, p=0.25):
-    """Use this function to predict """
-    # load the model
-    model = load(root % 'dt6.joblib')
-    # load encoder
-    enc = load(root % 'enc.joblib')
-    encoded = enc.transform(features)
-    # display(encoded)
-    # run probability
-    proba = pd.Series(model.predict_proba(encoded)[:, 1])
-    # display()
-    # generate and return result
-    return proba.apply(lambda x: -1 if x >= p else 1)
-
-# run prediction
-predict(test.iloc[:1, :], p=0.25)
